@@ -1,0 +1,95 @@
+###################
+# INITIAL IMPORTS #
+###################
+import os
+import csv
+import sys
+import json
+import math
+import time
+import pprint
+import random
+import string
+import hashlib
+import binascii
+import subprocess
+from datetime import datetime, timedelta
+
+
+##################
+# 3RD PARTY LIBS #
+##################
+outside_libs = [
+    ('boto', 'boto'),
+    ('flask', 'flask'),
+    ('redis', 'redis'),
+    ('scapy', 'scapy'),
+    ('psutil', 'psutil'),
+    ('MySQLdb', 'MySQL-python'),
+    ('requests', 'requests'),
+    ('termcolor', 'termcolor'),
+    ('fuzzywuzzy', 'fuzzywuzzy'),
+    ('BeautifulSoup', 'BeautifulSoup'),
+    ('elasticsearch', 'elasticsearch'),
+]
+
+for module_name, package_name in outside_libs:
+    try:
+        globals()[module_name] = __import__(module_name)
+    except:
+    	print 'Could not find {}... Downloading'.format(module_name)
+        subprocess.call(['pip', 'install', package_name])
+        globals()[module_name] = __import__(module_name)
+
+del outside_libs, module_name, package_name
+
+
+###############
+# GLOBAL VARS #
+###############
+REDIS_HOST = '192.168.99.100'
+REDIS_PORT = 6379
+
+MYSQL_HOST = '192.168.99.100'
+MYSQL_PORT = 3306
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'password'
+
+
+####################
+# CONNECTION SETUP #
+####################
+try:
+    from boto.s3.connection import OrdinaryCallingFormat
+    s3 = boto.connect_s3(calling_format=OrdinaryCallingFormat())
+except:
+    termcolor.cprint('Failed to init S3 connection', 'red', attrs=['bold'])
+
+
+r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+sr = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT)
+
+try:
+    r.ping()
+    sr.ping()
+    termcolor.cprint('Successfully pinged pre-defined redis host!', 'green', attrs=['bold'])
+except:
+    termcolor.cprint('Failed to ping pre-defined redis host!', 'red', attrs=['bold'])
+
+
+####################
+# EXPORT FUNCTIONS #
+####################
+def get_db(name):
+    return MySQLdb.connect(
+        host=MYSQL_HOST,
+        port=MYSQL_PORT,
+	user=MYSQL_USER,
+	passwd=MYSQL_PASSWORD,
+	db=name)
+
+
+#############
+# INDICATOR #
+#############
+termcolor.cprint('\nTools loaded!', 'blue', attrs=['bold'])
